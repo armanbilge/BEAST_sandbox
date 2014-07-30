@@ -22,6 +22,7 @@ public class HamiltonUpdate extends SimpleMCMCOperator {
 	private double L;
 	
 	public HamiltonUpdate(Likelihood q, Variable<Double>[] variables, double epsilon, double L) {
+		
 		this.q = q;
 		this.variables = variables;
 		int d = 0;

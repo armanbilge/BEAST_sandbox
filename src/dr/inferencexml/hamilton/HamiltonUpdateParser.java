@@ -3,6 +3,7 @@ package dr.inferencexml.hamilton;
 import dr.inference.hamilton.HamiltonUpdate;
 import dr.inference.model.Likelihood;
 import dr.inference.model.Variable;
+import dr.inference.operators.MCMCOperator;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
@@ -21,6 +22,7 @@ public class HamiltonUpdateParser extends AbstractXMLObjectParser {
     private final XMLSyntaxRule[] rules = {
             AttributeRule.newIntegerRule(ITERATIONS, true),
             AttributeRule.newDoubleRule(EPSILON, true),
+            AttributeRule.newDoubleRule(MCMCOperator.WEIGHT),
             new ElementRule(Likelihood.class, true),
             new ElementRule(VARIABLES, new ElementRule[]{new ElementRule(Variable.class, 1, Integer.MAX_VALUE)})
     };
@@ -40,7 +42,9 @@ public class HamiltonUpdateParser extends AbstractXMLObjectParser {
 		Variable<Double>[] variables = new Variable[cxo.getChildCount()];
 		for (int i = 0; i < variables.length; ++i)
 			variables[i] = (Variable<Double>) cxo.getChild(i);
-		return new HamiltonUpdate(q, variables, epsilon, L);
+		HamiltonUpdate hu = new HamiltonUpdate(q, variables, epsilon, L);
+		hu.setWeight(xo.getDoubleAttribute(MCMCOperator.WEIGHT));
+		return hu;
 	}
 
 	@Override
