@@ -20,8 +20,8 @@ public class HamiltonUpdateParser extends AbstractXMLObjectParser {
 	private static final String VARIABLES = "variables";
 	
     private final XMLSyntaxRule[] rules = {
-            AttributeRule.newIntegerRule(ITERATIONS, true),
-            AttributeRule.newDoubleRule(EPSILON, true),
+            AttributeRule.newIntegerRule(ITERATIONS),
+            AttributeRule.newDoubleRule(EPSILON),
             AttributeRule.newDoubleRule(MCMCOperator.WEIGHT),
             new ElementRule(Likelihood.class, true),
             new ElementRule(VARIABLES, new ElementRule[]{new ElementRule(Variable.class, 1, Integer.MAX_VALUE)})
@@ -35,16 +35,26 @@ public class HamiltonUpdateParser extends AbstractXMLObjectParser {
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object parseXMLObject(XMLObject xo) throws XMLParseException {
-		int L = xo.getIntegerAttribute(ITERATIONS);
-		double epsilon = xo.getDoubleAttribute(EPSILON);
+		
+		int L = 100;
+		if (xo.hasAttribute(ITERATIONS))
+			L = xo.getIntegerAttribute(ITERATIONS);
+
+		double epsilon = 0.1;
+		if (xo.hasAttribute(EPSILON))
+			epsilon = xo.getDoubleAttribute(EPSILON);
+		
 		Likelihood q = (Likelihood) xo.getChild(Likelihood.class);
+		
 		XMLObject cxo = xo.getChild(VARIABLES);
 		Variable<Double>[] variables = new Variable[cxo.getChildCount()];
 		for (int i = 0; i < variables.length; ++i)
 			variables[i] = (Variable<Double>) cxo.getChild(i);
+		
 		HamiltonUpdate hu = new HamiltonUpdate(q, variables, epsilon, L);
 		hu.setWeight(xo.getDoubleAttribute(MCMCOperator.WEIGHT));
 		return hu;
+		
 	}
 
 	@Override

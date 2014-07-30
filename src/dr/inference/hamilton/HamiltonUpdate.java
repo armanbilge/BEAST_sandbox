@@ -21,8 +21,11 @@ public class HamiltonUpdate extends SimpleMCMCOperator {
 	private double epsilon;
 	private double L;
 	
+	{
+		setTargetAcceptanceProbability(0.8);
+	}
+	
 	public HamiltonUpdate(Likelihood q, Variable<Double>[] variables, double epsilon, double L) {
-		
 		this.q = q;
 		this.variables = variables;
 		int d = 0;
@@ -48,8 +51,44 @@ public class HamiltonUpdate extends SimpleMCMCOperator {
 		return sb.toString();
 	}
 
+	private void adjustEpsilon() {
+		
+		if (getAcceptanceProbability() < getTargetAcceptanceProbability())
+			epsilon /= 2;
+		else
+			epsilon *= 2;
+		
+	}
+	
+	private void adjustL() {
+		// TODO
+	}
+	
+    public double getMinimumAcceptanceLevel() {
+        return 0.2;
+    }
+
+    public double getMaximumAcceptanceLevel() {
+        return 1.0;
+    }
+
+    public double getMinimumGoodAcceptanceLevel() {
+        return 0.7;
+    }
+
+    public double getMaximumGoodAcceptanceLevel() {
+        return 1.0;
+    }
+
+	
 	@Override
 	public double doOperation() throws OperatorFailedException {
+		
+		int count = getCount();
+		if (count > 0 && count % 100 == 0) {
+			adjustEpsilon();
+			adjustL();
+		}
 		
 		double[] p = new double[totalDimensions];
 		double[] storedP = new double[totalDimensions];
