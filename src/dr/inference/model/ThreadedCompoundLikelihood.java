@@ -27,10 +27,12 @@ package dr.inference.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import dr.app.beagle.evomodel.treelikelihood.BeagleTreeLikelihood;
+import dr.math.Differentiable;
 import dr.util.NumberFormatter;
 
 /**
@@ -63,6 +65,7 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 			}
 
 			likelihoodCallers.add(new LikelihoodCaller(likelihood));
+			differentiateCallers.add(new DifferentiateCaller(likelihood));
 
 			//System.err.println("LikelihoodCallers size: " + likelihoodCallers.size());
 		}
@@ -106,22 +109,22 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 				double backupLikelihood = logLikelihood;
 				logLikelihood = 0.0;
 
-				if (threads == null) {
+				if (likelihoodThreads == null) {
 					// first call so setup a thread for each likelihood...
-					threads = new LikelihoodThread[likelihoodCallers.size()];
-					for (int i = 0; i < threads.length; i++) {
+					likelihoodThreads = new LikelihoodThread[likelihoodCallers.size()];
+					for (int i = 0; i < likelihoodThreads.length; i++) {
 						// and start them running...
-						threads[i] = new LikelihoodThread();
-						threads[i].start();
+						likelihoodThreads[i] = new LikelihoodThread();
+						likelihoodThreads[i].start();
 					}
 				}
 
-				for (int i = 0; i < threads.length; i++) {
+				for (int i = 0; i < likelihoodThreads.length; i++) {
 					// set the caller which will be called in each thread
-					threads[i].setCaller(likelihoodCallers.get(i));
+					likelihoodThreads[i].setCaller(likelihoodCallers.get(i));
 				}
 
-				for (LikelihoodThread thread : threads) {
+				for (LikelihoodThread thread : likelihoodThreads) {
 					// now wait for the results to be set...
 					Double result = thread.getResult();
 					while (result == null) {
@@ -143,28 +146,28 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 			//double start = System.nanoTime();
 			//System.err.println("TCL getLogLikelihood()");
 
-			if (threads == null) {
+			if (likelihoodThreads == null) {
 				//System.err.println("threads == null");
 				// first call so setup a thread for each likelihood...
-				threads = new LikelihoodThread[likelihoodCallers.size()];
+				likelihoodThreads = new LikelihoodThread[likelihoodCallers.size()];
 				//System.err.println("LikelihoodThreads: " + threads.length);
-				for (int i = 0; i < threads.length; i++) {
+				for (int i = 0; i < likelihoodThreads.length; i++) {
 					// and start them running...
-					threads[i] = new LikelihoodThread();
-					threads[i].start();
+					likelihoodThreads[i] = new LikelihoodThread();
+					likelihoodThreads[i].start();
 				}
 			}
 
 			//double setStart = System.nanoTime();
-			for (int i = 0; i < threads.length; i++) {
+			for (int i = 0; i < likelihoodThreads.length; i++) {
 				// set the caller which will be called in each thread
-				threads[i].setCaller(likelihoodCallers.get(i));
+				likelihoodThreads[i].setCaller(likelihoodCallers.get(i));
 			}
 			//double setEnd = System.nanoTime();
 			//System.err.println("setting callers: " + (setEnd - setStart));
 
 			//start = System.nanoTime();
-			for (LikelihoodThread thread : threads) {
+			for (LikelihoodThread thread : likelihoodThreads) {
 				//double testone = System.nanoTime();
 				// now wait for the results to be set...
 				Double result = thread.getResult();
@@ -287,12 +290,14 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 		return id;
 	}
 
-	private LikelihoodThread[] threads;
+	private LikelihoodThread[] likelihoodThreads;
+	private DifferentialThread[] differentialThreads;
 
 	private final ArrayList<Likelihood> likelihoods = new ArrayList<Likelihood>();
 	private final CompoundModel compoundModel = new CompoundModel("compoundModel");
 
 	private final List<LikelihoodCaller> likelihoodCallers = new ArrayList<LikelihoodCaller>();
+	private final List<DifferentiateCaller> differentiateCallers = new ArrayList<DifferentiateCaller>();
 
 	private double weightFactor = 1.0;
 
@@ -309,6 +314,27 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 		private final Likelihood likelihood;
 	}
 
+    class DifferentiateCaller {
+
+    	private final Differentiable differentiable;
+    	private Variable<Double> variable;
+    	private int dimension;
+    	
+    	public DifferentiateCaller(Differentiable differentiable) {
+    		this.differentiable = differentiable;
+    	}
+    	
+		public double call() {
+			return differentiable.differentiate(variable, dimension);
+		}
+    	
+		public void setVariableAndDimension(Variable<Double> v, int d) {
+			variable = v;
+			dimension = d;
+		}
+		
+    }
+	
 	class LikelihoodThread extends Thread {
 
 		public LikelihoodThread() {
@@ -360,6 +386,59 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 		 private final ReentrantLock lock = new ReentrantLock();
 		 private final Condition condition = lock.newCondition();
 	}
+	
+	class DifferentialThread extends Thread {
+
+		public DifferentialThread() {
+		}
+
+		public void setCaller(DifferentiateCaller caller) {
+			lock.lock();
+			resultAvailable = false;
+			try {
+				this.caller = caller;
+				condition.signal();
+			} finally {
+				lock.unlock();
+			}
+		}
+
+		/**
+		 * Main run loop
+		 */
+		 public void run() {
+			while (true) {
+				lock.lock();
+				try {
+					while( caller == null)
+						condition.await();
+					result = caller.call(); // SLOW
+					resultAvailable = true;
+					caller = null;
+				} catch (InterruptedException e){
+
+				} finally {
+					lock.unlock();
+				}
+			}
+		 }
+
+		 public Double getResult() {
+			 Double returnValue = null;
+			 if (!lock.isLocked() && resultAvailable)  { // thread is not busy and completed
+				 resultAvailable = false; // TODO need to lock before changing resultAvailable?
+				 returnValue = result;
+			 }
+			 return returnValue;
+		 }
+
+		 private DifferentiateCaller caller = null;
+		 private Double result = Double.NaN;
+		 private boolean resultAvailable = false;
+		 private final ReentrantLock lock = new ReentrantLock();
+		 private final Condition condition = lock.newCondition();
+	}
+
 
 	public boolean isUsed() {
 		return isUsed;
@@ -374,5 +453,82 @@ public class ThreadedCompoundLikelihood implements Likelihood {
 	}
 
 	private boolean isUsed = false;
+
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+		double[] likelihoods = new double[this.likelihoods.size()];
+		double[] derivatives = new double[this.likelihoods.size()];
+
+		boolean knownLikelihoods = true;
+		for (int i = 0; i < likelihoods.length; ++i) {
+			Likelihood l = this.likelihoods.get(i);
+			if (!((BeagleTreeLikelihood)l).isLikelihoodKnown()) {
+				knownLikelihoods = false;
+				break;
+			} else {
+				likelihoods[i] = l.getLogLikelihood();
+				derivatives[i] = l.differentiate(v, d);
+			}
+		}
+		
+		if (!knownLikelihoods) {
+
+			if (likelihoodThreads == null) {
+				likelihoodThreads = new LikelihoodThread[likelihoodCallers.size()];
+				for (int i = 0; i < likelihoodThreads.length; i++) {
+					likelihoodThreads[i] = new LikelihoodThread();
+					likelihoodThreads[i].start();
+				}
+			}
+			
+			if (differentialThreads == null) {
+				differentialThreads = new DifferentialThread[differentiateCallers.size()];
+				for (int i = 0; i < differentialThreads.length; i++) {
+					differentialThreads[i] = new DifferentialThread();
+					differentialThreads[i].start();
+				}
+			}
+
+			for (int i = 0; i < likelihoodThreads.length; i++) {
+				likelihoodThreads[i].setCaller(likelihoodCallers.get(i));
+				differentiateCallers.get(i).setVariableAndDimension(v, d);
+				differentialThreads[i].setCaller(differentiateCallers.get(i));
+			}
+
+			for (int i = 0; i < likelihoods.length; ++i) {
+				Double result = likelihoodThreads[i].getResult();
+				while (result == null) {
+					result = likelihoodThreads[i].getResult();
+				}
+				likelihoods[i] = result;
+				
+				result = differentialThreads[i].getResult();
+				while (result == null) {
+					result = differentialThreads[i].getResult();
+				}
+				derivatives[i] = result;
+			}
+		}
+		
+		double sum = 0.0;
+		for (int i = 0; i < likelihoods.length; ++i) {
+			double product = 1.0;
+			for (int j = 0; j < likelihoods.length; ++j) {
+				if (i == j)
+					product *= derivatives[j];
+				else
+					product *= likelihoods[j];
+			}
+			sum += product;
+		}
+		
+		return sum;
+		
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
 
 }

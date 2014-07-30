@@ -53,4 +53,17 @@ public abstract class AbstractModelLikelihood extends AbstractModel implements L
             return getLogLikelihood();
         }
     }
+    
+    // **************************************************************
+    // Differentiable IMPLEMENTATION
+    // **************************************************************
+
+    public double differentiate(Variable<Double> v, int d) {
+    	return 0.0;
+    }
+    
+    public double differentiate(Variable<Double> v) {
+    	return differentiate(v, 0);
+    }
+    
 }

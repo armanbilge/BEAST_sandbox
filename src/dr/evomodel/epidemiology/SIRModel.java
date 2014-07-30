@@ -368,5 +368,16 @@ public class SIRModel extends DemographicModel implements Likelihood {
         }
 
     }
+    
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+       return 0.0;
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
+
 
 }

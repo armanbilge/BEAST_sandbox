@@ -20,7 +20,7 @@ import dr.xml.*;
  *         Date: Sep 23, 2010
  *         Time: 12:25:14 PM
  */
-public class MultivariatePolyaDistributionLikelihood extends AbstractModel implements Likelihood {
+public class MultivariatePolyaDistributionLikelihood extends AbstractModelLikelihood {
 
     protected Parameter frequencies;
     protected Parameter dispersion;
@@ -306,4 +306,5 @@ public class MultivariatePolyaDistributionLikelihood extends AbstractModel imple
     public static final String DISPERSION = "dispersion";
     public static final String FREQ = "frequencies";
     public static final String RATES = "alpha";
+
 }

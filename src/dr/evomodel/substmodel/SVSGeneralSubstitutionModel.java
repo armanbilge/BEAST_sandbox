@@ -155,4 +155,15 @@ public class SVSGeneralSubstitutionModel extends GeneralSubstitutionModel implem
     private boolean isUsed = false;
 
     private Parameter rateIndicator;
+    
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+       return 0.0;
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
+
 }

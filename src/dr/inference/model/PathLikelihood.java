@@ -270,4 +270,16 @@ public class PathLikelihood implements Likelihood {
     private double pathParameter;
 
     private final CompoundModel compoundModel = new CompoundModel("compoundModel");
+    
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+       return 0.0;
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
+
+    
 }

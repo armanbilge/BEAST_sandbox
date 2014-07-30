@@ -32,6 +32,7 @@ import dr.inference.model.BayesianStochasticSearchVariableSelection;
 import dr.inference.model.Likelihood;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
+import dr.inference.model.Variable;
 import dr.math.matrixAlgebra.Vector;
 
 import java.util.Arrays;
@@ -249,4 +250,15 @@ public class ComplexSubstitutionModel extends GeneralSubstitutionModel implement
     }
 
     private boolean doNormalization = true;
+
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+		if (hasVariable(v)) return 1.0;
+		return 0.0;
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
 }

@@ -25,6 +25,7 @@
 
 package dr.inference.model;
 
+import dr.math.Differentiable;
 import dr.util.NumberFormatter;
 import dr.xml.Reportable;
 
@@ -119,6 +120,10 @@ public class CompoundLikelihood implements Likelihood, Reportable {
                     compoundModel.addModel(likelihood.getModel());
                 }
 
+                if (addToPool)
+                	likelihoodCallers.add(new LikelihoodCaller(likelihood, index));
+                	differentiateCallers.add(new DifferentiateCaller(likelihood));
+                
                 if (likelihood.evaluateEarly()) {
                     earlyLikelihoods.add(likelihood);
                 } else {
@@ -126,7 +131,7 @@ public class CompoundLikelihood implements Likelihood, Reportable {
                     lateLikelihoods.add(likelihood);
 
                     if (addToPool) {
-                        likelihoodCallers.add(new LikelihoodCaller(likelihood, index));
+                        lateLikelihoodCallers.add(new LikelihoodCaller(likelihood, index));
                     }
                 }
             }
@@ -146,7 +151,7 @@ public class CompoundLikelihood implements Likelihood, Reportable {
     }
 
     public List<Callable<Double>> getLikelihoodCallers() {
-        return likelihoodCallers;
+        return lateLikelihoodCallers;
     }
 
     // **************************************************************
@@ -174,7 +179,7 @@ public class CompoundLikelihood implements Likelihood, Reportable {
         } else {
 
             try {
-                List<Future<Double>> results = pool.invokeAll(likelihoodCallers);
+                List<Future<Double>> results = pool.invokeAll(lateLikelihoodCallers);
 
                 for (Future<Double> result : results) {
                     double logL = result.get();
@@ -455,7 +460,9 @@ public class CompoundLikelihood implements Likelihood, Reportable {
     private final ArrayList<Likelihood> earlyLikelihoods = new ArrayList<Likelihood>();
     private final ArrayList<Likelihood> lateLikelihoods = new ArrayList<Likelihood>();
 
+    private final List<Callable<Double>> lateLikelihoodCallers = new ArrayList<Callable<Double>>();
     private final List<Callable<Double>> likelihoodCallers = new ArrayList<Callable<Double>>();
+    private final List<DifferentiateCaller> differentiateCallers = new ArrayList<DifferentiateCaller>();
 
     class LikelihoodCaller implements Callable<Double> {
 
@@ -482,7 +489,84 @@ public class CompoundLikelihood implements Likelihood, Reportable {
         private final int index;
     }
 
+    class DifferentiateCaller implements Callable<Double> {
+
+    	private final Differentiable differentiable;
+    	private Variable<Double> variable;
+    	private int dimension;
+    	
+    	public DifferentiateCaller(Differentiable differentiable) {
+    		this.differentiable = differentiable;
+    	}
+    	
+		@Override
+		public Double call() throws Exception {
+			return differentiable.differentiate(variable, dimension);
+		}
+    	
+		public void setVariableAndDimension(Variable<Double> v, int d) {
+			variable = v;
+			dimension = d;
+		}
+		
+    }
+    
     public static final boolean DEBUG_PARALLEL_EVALUATION = false;
+
+    // **************************************************************
+    // Differentiable IMPLEMENTATION
+    // **************************************************************
+    
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+		
+		double[] likelihoods = new double[likelihoodCallers.size()];
+		double[] derivatives = new double[differentiateCallers.size()];
+		
+		if (pool == null) {
+			for (int i = 0; i < likelihoods.length; ++i) {
+				Likelihood l = this.likelihoods.get(i);
+				likelihoods[i] = l.getLogLikelihood();
+				derivatives[i] = l.differentiate(v, d);
+			}
+		} else {
+            try {
+                List<Future<Double>> ls = pool.invokeAll(likelihoodCallers);
+                for (DifferentiateCaller c : differentiateCallers)
+                	c.setVariableAndDimension(v, d);
+                List<Future<Double>> ds = pool.invokeAll(differentiateCallers);
+                for (int i = 0; i < likelihoods.length; ++i) {
+                    likelihoods[i] = ls.get(i).get();
+                    derivatives[i] = ds.get(i).get();
+                }
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+		}
+		
+		double sum = 0.0;
+		for (int i = 0; i < likelihoods.length; ++i) {
+			double product = 1.0;
+			for (int j = 0; j < likelihoods.length; ++j) {
+				if (i == j)
+					product *= derivatives[j];
+				else
+					product *= likelihoods[j];
+			}
+			sum += product;
+		}
+		
+		return sum;
+		
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
 
 }
 

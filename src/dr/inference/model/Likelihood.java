@@ -26,6 +26,7 @@
 package dr.inference.model;
 
 import dr.inference.loggers.Loggable;
+import dr.math.Differentiable;
 import dr.util.Identifiable;
 
 import java.util.HashSet;
@@ -40,7 +41,7 @@ import java.util.Set;
  * @version $Id: Likelihood.java,v 1.16 2005/05/24 20:26:00 rambaut Exp $
  */
 
-public interface Likelihood extends Loggable, Identifiable {
+public interface Likelihood extends Loggable, Identifiable, Differentiable {
 
 	/**
 	 * Get the model.
@@ -205,6 +206,19 @@ public interface Likelihood extends Loggable, Identifiable {
 		private boolean likelihoodKnown = false;
 
         private boolean used = false;
+        
+        // **************************************************************
+        // Differentiable IMPLEMENTATION
+        // **************************************************************
+
+        public double differentiate(Variable<Double> v, int d) {
+        	return 0.0;
+        }
+        
+        public double differentiate(Variable<Double> v) {
+        	return differentiate(v, 0);
+        }
+        
 	}
 
 

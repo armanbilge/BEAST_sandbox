@@ -2,6 +2,7 @@ package dr.evomodel.coalescent;
 
 import dr.inference.model.Likelihood;
 import dr.inference.model.Model;
+import dr.inference.model.Variable;
 import dr.inference.loggers.LogColumn;
 import dr.inference.loggers.NumberColumn;
 import dr.xml.*;
@@ -134,4 +135,14 @@ public class GMRFDensityComponent implements Likelihood {
     private GMRFSkyrideLikelihood skyride;
     private boolean returnCoalescent;
     private String tag;
+
+	@Override
+	public double differentiate(Variable<Double> v, int d) {
+       return 0.0;
+	}
+
+	@Override
+	public double differentiate(Variable<Double> v) {
+		return differentiate(v, 0);
+	}
 }
