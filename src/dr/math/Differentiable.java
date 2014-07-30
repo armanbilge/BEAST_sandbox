@@ -1,6 +1,6 @@
 package dr.math;
 
-import dr.inference.model.Parameter;
+import dr.inference.model.Variable;
 
 /**
  * 
@@ -11,21 +11,21 @@ public interface Differentiable {
 
 	/**
 	 * Partially differentiates a function.
-	 * @param p parameter to differentiate with respect to
-	 * @param d specific dimension of the given parameter to with respect to
+	 * @param v variable to differentiate with respect to
+	 * @param d dimension of the given variable to differentiate with respect to
 	 * @return the partial derivative of the function
 	 */
-	public double differentiate(Parameter p, int d);
+	public double differentiate(Variable<Double> v, int d);
 	
 	/**
 	 * Partially differentiates a function.
 	 * 
 	 * Convenience method that should return the derivative with respect to the 
-	 * element of the parameter.
+	 * first dimension of the variable.
 	 * 
-	 * @param p parameter to differentiate with respect to
+	 * @param v variable to differentiate with respect to
 	 * @return the partial derivative of the function
 	 */
-	public double differentiate(Parameter p);
+	public double differentiate(Variable<Double> v);
 	
 }
