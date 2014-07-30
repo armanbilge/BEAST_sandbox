@@ -1,4 +1,4 @@
-package dr.math;
+package dr.math.interfaces;
 
 import dr.inference.model.Variable;
 

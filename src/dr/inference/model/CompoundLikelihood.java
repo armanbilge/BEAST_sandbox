@@ -25,7 +25,7 @@
 
 package dr.inference.model;
 
-import dr.math.Differentiable;
+import dr.math.interfaces.Differentiable;
 import dr.util.NumberFormatter;
 import dr.xml.Reportable;
 

@@ -26,7 +26,7 @@
 package dr.inference.model;
 
 import dr.inference.loggers.Loggable;
-import dr.math.Differentiable;
+import dr.math.interfaces.Differentiable;
 import dr.util.Identifiable;
 
 import java.util.HashSet;
