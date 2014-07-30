@@ -4,6 +4,7 @@ import dr.inference.model.Likelihood;
 import dr.inference.model.Variable;
 import dr.inference.operators.OperatorFailedException;
 import dr.inference.operators.SimpleMCMCOperator;
+import dr.inferencexml.hamilton.HamiltonUpdateParser;
 import dr.math.MathUtils;
 
 /**
@@ -36,7 +37,14 @@ public class HamiltonUpdate extends SimpleMCMCOperator {
 
 	@Override
 	public String getOperatorName() {
-		return "HamiltonUpdate";
+		StringBuilder sb = new StringBuilder(HamiltonUpdateParser.HAMILTON_UPDATE);
+		sb.append("(");
+		for (Variable<Double> v : variables) {
+			sb.append(v.getId());
+			sb.append(",");
+		}
+		sb.replace(sb.length() - 1, sb.length(), ")");
+		return sb.toString();
 	}
 
 	@Override
@@ -91,5 +99,5 @@ public class HamiltonUpdate extends SimpleMCMCOperator {
 		
 		return storedK - proposedK;
 	}
-
+	
 }
