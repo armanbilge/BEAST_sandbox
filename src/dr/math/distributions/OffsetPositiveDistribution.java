@@ -45,6 +45,11 @@ public class OffsetPositiveDistribution implements Distribution {
         return distribution.logPdf(x - offset);
     }
 
+    public final double differentiateLogPdf(double x) {
+    	if (offset < 0) return 0.0;
+    	return distribution.differentiateLogPdf(x - offset);
+    }
+    
     /**
      * cumulative density function of the offset distribution
      *

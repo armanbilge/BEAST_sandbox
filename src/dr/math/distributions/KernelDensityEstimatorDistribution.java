@@ -44,6 +44,10 @@ public abstract class KernelDensityEstimatorDistribution implements Distribution
         return Math.log(pdf(x));
     }
 
+    public double differentiateLogPdf(double x) {
+    	return 0.0;
+    }
+    
     /**
      * cumulative density function of the distribution
      *

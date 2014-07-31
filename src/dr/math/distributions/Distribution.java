@@ -50,6 +50,14 @@ public interface Distribution {
      * @return log pdf value
      */
     public double logPdf(double x);
+    
+    /**
+     * the derivative of the natural log of the probability density function of the distribution
+     *
+     * @param x argument
+     * @return derivative of log pdf at x
+     */
+    public double differentiateLogPdf(double x);
 
     /**
      * cumulative density function of the distribution

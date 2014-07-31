@@ -90,6 +90,10 @@ public class GammaDistribution implements Distribution {
         return logPdf(x, shape, scale);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return differentiateLogPdf(x, shape, scale);
+    }
+    
     public double cdf(double x) {
         return cdf(x, shape, scale);
     }
@@ -201,6 +205,27 @@ public class GammaDistribution implements Distribution {
                 - Math.log(scale);
     }
 
+    public static double differentiateLogPdf(double x, double shape, double scale) {
+        
+    	if (x < 0)
+            return 0.0;
+
+        if (x == 0) {
+            if (shape == 1.0)
+                return Double.NaN;
+            else
+                return 0.0;
+        }
+        if (shape == 1.0) {
+            return - 1 / scale;
+        }
+        if (shape == 0.0)
+            return - 1 / x;
+                
+        return (shape - 1) / x - 1 / scale;
+
+    }
+    
     /**
      * cumulative density function of the Gamma distribution
      *

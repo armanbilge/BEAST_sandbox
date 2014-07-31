@@ -25,8 +25,10 @@
 
 package dr.inference.distribution;
 
+import dr.inference.model.Variable;
 import dr.math.distributions.Distribution;
 import dr.util.Attribute;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -119,6 +121,20 @@ public class DistributionLikelihood extends AbstractDistributionLikelihood {
         return logL;
     }
 
+    
+    // **************************************************************
+    // Differentiable IMPLEMENTATION
+    // **************************************************************
+
+    public double differentiate(Variable<Double> v, int d) {
+    	
+    	if (dataList.contains(v))
+    		return distribution.differentiateLogPdf(v.getValue(d));
+    		
+    	return 0.0;
+    	
+    }
+    
     @Override
     public boolean evaluateEarly() {
         return evaluateEarly;

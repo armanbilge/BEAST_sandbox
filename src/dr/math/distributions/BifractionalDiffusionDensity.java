@@ -58,6 +58,10 @@ public class BifractionalDiffusionDensity implements Distribution {
         return logPdf(x, v, alpha, beta, coefficients);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return 0.0;
+    }
+    
     /**
      * cumulative density function of the distribution
      *

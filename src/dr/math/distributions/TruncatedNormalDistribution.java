@@ -86,6 +86,10 @@ public class TruncatedNormalDistribution implements Distribution {
         return Math.log(pdf(x));
     }
 
+    public double differentiateLogPdf(double x) {
+    	return - (x - m) / (sd * sd);
+    }
+    
     public double cdf(double x) {
         double cdf;
         if (x < lower)

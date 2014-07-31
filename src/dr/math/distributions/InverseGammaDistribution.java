@@ -74,6 +74,10 @@ public class InverseGammaDistribution implements Distribution {
         return logPdf(x, shape, scale, logFacor);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return differentiateLogPdf(x, shape, scale, logFacor);
+    }
+    
     public double cdf(double x) {
         return cdf(x, shape, scale);
     }
@@ -145,6 +149,13 @@ public class InverseGammaDistribution implements Distribution {
         return  factor + shape*Math.log(scale) - (shape + 1)*Math.log(x) - (scale/x) - GammaFunction.lnGamma(shape);
     }
 
+    public static double differentiateLogPdf(double x, double shape, double scale, double factor) {
+    	if (x <= 0)
+    		return 0.0;
+    	
+    	return (scale - (shape + 1) * x) / (x * x);
+    }
+    
     /**
      * cumulative density function of the Gamma distribution
      *

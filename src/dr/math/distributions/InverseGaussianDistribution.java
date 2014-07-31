@@ -92,6 +92,10 @@ public class InverseGaussianDistribution implements Distribution {
         return logPdf(x, m, shape);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return differentiateLogPdf(x, m, shape);
+    }
+    
     public double cdf(double x) {
         return cdf(x, m, shape);
     }
@@ -155,6 +159,10 @@ public class InverseGaussianDistribution implements Distribution {
         return Math.log(a) + b;
     }
 
+    public static double differentiateLogPdf(double x, double m, double shape) {
+    	return (shape / 2 - 3/2 * x) / (x * x) - shape / (2 * m * m);
+    }
+    
     /**
      * cumulative density function
      *

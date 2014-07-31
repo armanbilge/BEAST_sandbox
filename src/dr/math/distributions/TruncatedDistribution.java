@@ -50,7 +50,7 @@ public class TruncatedDistribution extends AbstractContinuousDistribution implem
 
 
     public double pdf(double x) {
-        if (x >= upper && x < lower)
+        if (x >= upper || x < lower)
             return 0.0;
         else
             return source.pdf(x) / normalization;
@@ -60,6 +60,15 @@ public class TruncatedDistribution extends AbstractContinuousDistribution implem
         return Math.log(pdf(x));
     }
 
+    public double differentiateLogPdf(double x) {
+    	if (x > upper || x < lower)
+    		return 0.0;
+    	if (x == upper || x == lower)
+    		// TODO NaN is the safe but not always correct return
+    		return Double.NaN;
+    	return source.differentiateLogPdf(x);
+    }
+    
     public double cdf(double x) {
         double cdf;
         if (x < lower)

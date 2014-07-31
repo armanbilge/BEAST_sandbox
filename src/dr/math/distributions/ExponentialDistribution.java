@@ -61,6 +61,10 @@ public class ExponentialDistribution implements Distribution {
         return logPdf(x, lambda);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return differentiateLogPdf(x, lambda);
+    }
+    
     public double cdf(double x) {
         return cdf(x, lambda);
     }
@@ -123,6 +127,12 @@ public class ExponentialDistribution implements Distribution {
         return Math.log(lambda) - (lambda * x);
     }
 
+    public static double differentiateLogPdf(double x, double lambda) {
+    	if (x < 0) return 0.0;
+    	if (x == 0) return Double.NaN;
+    	return -lambda;
+    }
+    
     /**
      * cumulative density function of the exponential distribution
      *

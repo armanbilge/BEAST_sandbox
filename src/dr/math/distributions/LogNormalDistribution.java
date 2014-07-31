@@ -71,6 +71,10 @@ public class LogNormalDistribution implements Distribution {
         return logPdf(x, M, S);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return differentiateLogPdf(x, M, S);
+    }
+    
     public double cdf(double x) {
         return cdf(x, M, S);
     }
@@ -137,6 +141,12 @@ public class LogNormalDistribution implements Distribution {
         return NormalDistribution.logPdf(Math.log(x), M, S) - Math.log(x);
     }
 
+    public static double differentiateLogPdf(double x, double M, double S) {
+    	if (x <= 0) return 0.0;
+    	
+    	return (NormalDistribution.differentiateLogPdf(Math.log(x), M, S) - 1) / x;
+    }
+    
     /**
      * cumulative density function
      *

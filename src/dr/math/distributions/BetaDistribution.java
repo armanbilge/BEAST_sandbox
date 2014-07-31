@@ -130,6 +130,19 @@ public class BetaDistribution extends AbstractContinuousDistribution implements 
         }
     }
 
+    public double differentiateLogPdf(double x) {
+        recomputeZ();
+        if (x < 0 || x > 1) {
+            return 0;
+        } else if (x == 0 && alpha < 1) {
+            return Double.NaN;
+        } else if (x == 1) {
+            return Double.NaN;
+        } else {
+            return (-alpha + x * (alpha + beta - 2) + 1) / ((x - 1) * x);
+        }
+    }
+    
     /**
      * quantile (inverse cumulative density function) of the distribution
      *

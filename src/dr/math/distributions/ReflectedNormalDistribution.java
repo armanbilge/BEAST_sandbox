@@ -112,6 +112,10 @@ public class ReflectedNormalDistribution implements Distribution {
         throw new RuntimeException("Not implemented!");
     }
 
+    public double differentiateLogPdf(double x) {
+    	throw new RuntimeException("Not implemented!");
+    }
+    
     public double cdf(double x) {
         throw new RuntimeException("Not implemented!");
     }
