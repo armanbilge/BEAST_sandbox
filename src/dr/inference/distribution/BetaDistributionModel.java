@@ -87,7 +87,13 @@ public class BetaDistributionModel extends AbstractModel implements ParametricDi
 
         return betaDistribution.logPdf(xScaled);
     }
-
+    
+    public double differentiateLogPdf(double x) {
+    	double xScaled = getXScaled(x);
+        if (xScaled < 0.0 || xScaled > 1.0) return 0.0;
+        return betaDistribution.differentiateLogPdf(xScaled);
+    }
+    
     public double cdf(double x) {
         if (x < offset) return 0.0;
         return betaDistribution.cdf(getXScaled(x));
@@ -178,6 +184,7 @@ public class BetaDistributionModel extends AbstractModel implements ParametricDi
 
     private BetaDistribution betaDistribution = null;
     private BetaDistribution storedBetaDistribution = null;
+
 
 }
 

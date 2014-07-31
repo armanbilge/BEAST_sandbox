@@ -125,6 +125,10 @@ public class NormalDistribution implements Distribution, RandomGenerator {
         return a * Math.exp(b);
     }
 
+    public static double differentiatePdf(double x, double m, double sd) {
+    	return (m - x) / sd * pdf(x, m, sd);
+    }
+    
     /**
      * the natural log of the probability density function of the distribution
      *

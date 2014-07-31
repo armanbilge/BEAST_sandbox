@@ -32,7 +32,9 @@ import dr.inference.model.Variable;
 import dr.inference.loggers.Logger;
 import dr.inferencexml.distribution.LogNormalDistributionModelParser;
 import dr.math.UnivariateFunction;
+import dr.math.distributions.LogNormalDistribution;
 import dr.math.distributions.NormalDistribution;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -170,6 +172,11 @@ public class LogNormalDistributionModel extends AbstractModel implements Paramet
     public double logPdf(double x) {
         if (x - offset <= 0.0) return Double.NEGATIVE_INFINITY;
         return NormalDistribution.logPdf(Math.log(x - offset), getM(), getStDev()) - Math.log(x - offset);
+    }
+    
+    public double differentiateLogPdf(double x) {
+    	if (x - offset < 0.0) return 0.0;
+    	return NormalDistribution.differentiateLogPdf(Math.log(x - offset), getM(), getStDev()) - 1.0 / (x - offset);
     }
 
     public double cdf(double x) {

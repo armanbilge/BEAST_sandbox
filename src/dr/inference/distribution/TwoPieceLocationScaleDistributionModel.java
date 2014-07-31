@@ -99,6 +99,21 @@ public class TwoPieceLocationScaleDistributionModel extends AbstractModel implem
 
         return Math.log(2.0) - Math.log(lowerScale + upperScale) + distribution.logPdf(t);
     }
+    
+    public double differentiateLogPdf(double x) {
+        final double mu = getLocation();
+        final double lowerScale = getLowerScale();
+        final double upperScale = getUpperScale();
+
+        double t = x - mu;
+        if (x < mu) {
+            t /= lowerScale;
+        } else {
+            t /= upperScale;
+        }
+
+        return distribution.differentiateLogPdf(t) / x < mu ? lowerScale : upperScale;
+    }
 
     public double cdf(double x) {
         throw new RuntimeException("Not yet implemented.");

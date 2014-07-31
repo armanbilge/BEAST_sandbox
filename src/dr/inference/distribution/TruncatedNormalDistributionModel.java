@@ -124,6 +124,10 @@ public class TruncatedNormalDistributionModel extends AbstractModel implements P
         return distribution.logPdf(x);
     }
 
+    public double differentiateLogPdf(double x) {
+    	return distribution.differentiateLogPdf(x);
+    }
+    
     public double cdf(double x) {
         return distribution.cdf(x);
     }

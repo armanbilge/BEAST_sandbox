@@ -82,6 +82,12 @@ public class SkewNormalDistributionModel extends AbstractModel implements Parame
         return Math.log(pdf(x));
     }
 
+    public double differentiateLogPdf(double x) {
+    	double delta = shift(x);
+    	double s = shape.getValue(0);
+    	return (NormalDistribution.differentiatePdf(delta, 0, 1) / NormalDistribution.pdf(delta, 0, 1) + s * NormalDistribution.pdf(s * delta, 0, 1) / NormalDistribution.cdf(s * delta, 0, 1)) / scale.getValue(0);
+    }
+    
     public double cdf(double x) {
         throw new IllegalArgumentException("Not yet implement");
 //        return NormalDistribution.cdf(x, mean(), getStdev());

@@ -84,6 +84,10 @@ public class TDistributionModel extends AbstractModel implements ParametricDistr
         return TDistribution.logPDF(x, getLocation(), getScale(), getDF());
     }
 
+    public double differentiateLogPdf(double x) {
+    	return TDistribution.differentiateLogPDF(x, getLocation(), getScale(), getDF());
+    }
+    
     public double cdf(double x) {
         throw new RuntimeException("Not yet implemented.");
     }
